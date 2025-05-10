@@ -4,7 +4,6 @@
     <title>Hulladek Voting System</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- other meta tags -->
     <link rel="shortcut icon" href="images/logo.png" type="image/x-icon"> 
     <link rel="stylesheet" type="text/css" href="assets/main.css">
 </head>
@@ -17,24 +16,22 @@
                 <h2 class="fs-title">PLANET HEALER OF THE MONTH</h2>
                 <h3 class="fs-subtitle">Welcome to Online Voting System</h3>
 
-                <h2 style="font-size: 14px;text-align: left;  padding:0px 0px 8px;    line-height: 21px;
-;">Award Type</h2>
-                <select id="ed" name="Award Type" required>
+                <h2 class="label-title">Award Type</h2>
+                <select name="Award Type" required>
                     <option value="Planet Healer">Planet Healer</option>
                 </select>
 
-                <h2 style="font-size: 14px;text-align: left;  padding:0px 0px 8px;    line-height: 21px;
-;">Employee Name</h2>
-                <select id="se" name="Employee Name" required>
+                <h2 class="label-title">Employee Name</h2>
+                <select name="Employee Name" required>
                     <option value="">Please select the name from dropdown</option> 
                     <option value="Debopam Majumder">Debopam Majumder</option>
                     <option value="Ayushmaan Soni">Ayushmaan Soni</option>
                     <option value="Harpreet Singh Mann">Harpreet Singh Maan</option>
                     <option value="Barnali Dutta">Barnali Dutta</option>
                 </select>
-                <h2 style="font-size: 14px;text-align: left;  padding:18px 0px 8px;    line-height: 21px;
-;">Select Month</h2>
-                <select id="ed" name="Select Month" required>
+
+                <h2 class="label-title">Select Month</h2>
+                <select name="Select Month" required>
                     <option value="">Select the Month</option>
                     <option value="Apr">Apr</option>
                     <option value="May">May</option>
@@ -49,6 +46,7 @@
                     <option value="Feb">Feb</option>
                     <option value="Mar">Mar</option>
                 </select>
+
                 <input type="submit" id="submit-button" class="submit action-button" value="Submit"/>
             </fieldset>
         </form>
@@ -57,56 +55,74 @@
 </div>
 
 <script>
-document.getElementById("msform").addEventListener("submit", function (e) {
-    e.preventDefault(); // Prevent the default form submission
+document.getElementById("msform").addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-    document.getElementById("message").textContent = "Submitting...";
-    document.getElementById("message").style.display = "block";
-    document.getElementById("submit-button").disabled = true;
+    const messageDiv = document.getElementById("message");
+    const submitBtn = document.getElementById("submit-button");
+    messageDiv.textContent = "Submitting...";
+    messageDiv.style.display = "block";
+    submitBtn.disabled = true;
 
-    var formData = new FormData(this);
-    var keyValuePairs = [];
-    for (var pair of formData.entries()) {
-        keyValuePairs.push(pair[0] + "=" + encodeURIComponent(pair[1]));
-    }
-    var formDataString = keyValuePairs.join("&");
+    try {
+        // Get IP address
+        const ipRes = await fetch("https://api.ipify.org?format=json");
+        const ipData = await ipRes.json();
+        const ip = ipData.ip;
 
-    fetch("https://script.google.com/macros/s/AKfycbz6Gngjzsir9uv-v36YL0P71tJNceiBEoW-3RllMZg9XnbE7I9lZhVMRT69mAZhCs3a/exec", {
-        method: "POST",
-        body: formDataString,
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        },
-    })
-    .then(function (response) {
-        if (response.ok) {
-            return response.text(); // Assuming your script returns plain text response
-        } else {
-            throw new Error("Failed to submit the form.");
+        // Prepare form data
+        const form = document.getElementById("msform");
+        const formData = new FormData(form);
+        formData.append("GET_IP", ip);
+
+        const bodyData = new URLSearchParams();
+        for (let [key, value] of formData.entries()) {
+            bodyData.append(key, value);
         }
-    })
-    .then(function (data) {
-        //document.getElementById("message").textContent = "Data submitted successfully!";
-        //document.getElementById("message").style.backgroundColor = "green";
-        //document.getElementById("message").style.color = "beige";
-        //document.getElementById("msform").reset();
-        window.location.href = "thankyou.html";
-    })
-    .catch(function (error) {
-        console.error(error);
-        document.getElementById("message").textContent = "An error occurred while submitting the form.";
-    })
-    .finally(function () {
-        document.getElementById("message").style.display = "block";
-        document.getElementById("submit-button").disabled = false;
-        setTimeout(function () {
-            document.getElementById("message").style.display = "none";
-        }, 2600);
-    });
+
+        // Submit to Google Apps Script
+        const response = await fetch("https://script.google.com/macros/s/AKfycbz6Gngjzsir9uv-v36YL0P71tJNceiBEoW-3RllMZg9XnbE7I9lZhVMRT69mAZhCs3a/exec", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+            body: bodyData.toString(),
+        });
+
+        const resultText = await response.text();
+        let result;
+        try {
+            result = JSON.parse(resultText);
+        } catch {
+            throw new Error("Invalid server response");
+        }
+
+        if (result.status === "success") {
+            window.location.href = "thankyou.html";
+        } else {
+            messageDiv.textContent = "❌ " + result.message;
+        }
+    } catch (err) {
+        console.error(err);
+        messageDiv.textContent = "❌ An error occurred while submitting the form.";
+    } finally {
+        messageDiv.style.display = "block";
+        submitBtn.disabled = false;
+        setTimeout(() => {
+            messageDiv.style.display = "none";
+        }, 3000);
+    }
 });
 </script>
 
- <!-- main js-->
- <script type="text/javascript" src="assets/main.js"></script>
+<!-- Optional: CSS for label-title -->
+<style>
+.label-title {
+    font-size: 14px;
+    text-align: left;
+    padding: 18px 0px 8px;
+    line-height: 21px;
+}
+</style>
+
+<script type="text/javascript" src="assets/main.js"></script>
 </body>
 </html>
