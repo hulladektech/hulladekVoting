@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Hulladek Voting System</title>
-    <meta charset="utf-8"/>
+    <meta charset="utf-8"/>āāāāāāā
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- other meta tags -->
     <link rel="shortcut icon" href="images/logo.png" type="image/x-icon"> 
@@ -57,14 +57,24 @@
 </div>
 
 <script>
-document.getElementById("msform").addEventListener("submit", function (e) {
+document.getElementById("msform").addEventListener("submit",async function (e) {
     e.preventDefault(); // Prevent the default form submission
 
     document.getElementById("message").textContent = "Submitting...";
     document.getElementById("message").style.display = "block";
     document.getElementById("submit-button").disabled = true;
 
+    let ipAddress = "Unavailable";
+    try {
+        const ipResponse = await fetch("https://api.ipify.org?format=json");
+        const ipData = await ipResponse.json();
+        ipAddress = ipData.ip;
+    } catch (error) {
+        console.error("Failed to get IP address:", error);
+    }
+
     var formData = new FormData(this);
+    formData.append("GET_IP", ipAddress.toString());
     var keyValuePairs = [];
     for (var pair of formData.entries()) {
         keyValuePairs.push(pair[0] + "=" + encodeURIComponent(pair[1]));
