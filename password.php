@@ -3,7 +3,7 @@ session_start();
 if (isset($_POST['password'])) {
     if ($_POST['password'] == "Hull@dek!2025") {
         $_SESSION['authenticated'] = true;
-        header("Location: table.php");
+        header("Location: changemaker.php");
         exit();
     } else {
         $error = "Incorrect password! Please try again.";
